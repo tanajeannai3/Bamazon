@@ -51,10 +51,10 @@ var connection = mysql.createConnection({
   ]).then(function(user){
     var idRequested = user.purchase;
     var unitsRequested = user.units;
-    var stock = result[0].stock_quantity;
-      if(unitsRequested <= stock){
-        connection.query("UPDATE products SET stock_quantity = stock_quantity - " 
-                        + unitsRequested + "WHERE item_id = " + idRequested + ';', function(err, result){
+    var updatedStock = result[0].stock_quantity - user.units;
+      if(unitsRequested <= result[0].stock_quantity){
+        connection.query("UPDATE products SET stock_quantity = " 
+                        + updatedStock + "WHERE item_id = " + idRequested + ';', function(err, result){
             if (err) throw err;
             console.log(result);
             console.log('Congratulations, the product you requested is in stock! Placing order!');
