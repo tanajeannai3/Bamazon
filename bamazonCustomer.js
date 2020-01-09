@@ -22,16 +22,16 @@ var connection = mysql.createConnection({
     if (err) throw err;
     var table = new Table({
         head: ['ID','Product Name', 'Department Name', 'Price', 'Stock Quantity'],
-        colWidths: [40,40, 30, 30, 30 , 8], 
+        colWidths: [40, 40, 40, 40, 40], 
         colAligns: ["center","center", "center", "center", "center"], 
         style: {compact: true}
     });
     for(var i = 0; i < result.length; i++){
         table.push([
             result[i].item_id,
+            result[i].price,
             result[i].product_name, 
             result[i].department_name, 
-            result[i].price, 
             result[i].stock_quantity]);
         console.log(table.toString());
     }
@@ -49,19 +49,35 @@ var connection = mysql.createConnection({
           filter: Number
       }
   ]).then(function(user){
-    var idRequested = user.purchase;
     var unitsRequested = user.units;
-    var updatedStock = result[0].stock_quantity - user.units;
+    var itemRequested = result.purchase;
+    var price = result[0].price;
       if(unitsRequested <= result[0].stock_quantity){
-        connection.query("UPDATE products SET stock_quantity = " 
-                        + updatedStock + "WHERE item_id = " + idRequested + ';', function(err, result){
+        connection.query("UPDATE products SET ? WHERE ?",
+          [{stock_quantity:  result[0].stock_quantity - user.units},
+            {item_id: user.purchase}],
+          function(err, result){
             if (err) throw err;
+            console.log('Congratulations, the product you requested is in stock! Placing order!'); 
+            console.log("Your total for today is $" + parseInt(unitsRequested) * parseInt(price));
             console.log(result);
-            console.log('Congratulations, the product you requested is in stock! Placing order!');
-            console.log("HEY");   
+            console.log(itemRequested);
         });
       }else{
           console.log("Insufficient quantity!");   
       }
+      update();
   })
+  function update(user){
+   
+    var query = connection.query("UPDATE products SET ? WHERE ?",
+    [{
+      stock_quantity: parseInt(unitsRequested) * parseFloat(price)
+    }, 
+    {
+      item_id: parseInt(result[0].stock_quantity) - parseInt(itemRequested)
+    }
+  ],)
+  console.log(query.sql);
+}
 });
